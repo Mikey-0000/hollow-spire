@@ -229,7 +229,7 @@ function setup() {
 // MAIN DRAW LOOP
 // ============================================================
 
-function draw() {
+function drawGame() {
 
     if (gameState === "title") {
 
@@ -323,226 +323,323 @@ function loadFloorMonster() {
 
 function titleScreen() {
 
-    background(3, 7, 18);
+    let ctx = drawingContext;
+
+    let t = frameCount;
+
+
+    // ---- Sky ----
+
+    ctx.save();
+
+    let sky = ctx.createLinearGradient(0, 0, 0, 600);
+
+    sky.addColorStop(0, "#02040c");
+    sky.addColorStop(0.5, "#08122a");
+    sky.addColorStop(1, "#142a58");
+
+    ctx.fillStyle = sky;
+
+    ctx.fillRect(0, 0, 800, 600);
+
+    ctx.restore();
+
+
+    // ---- Stars ----
+
+    noStroke();
+
+    for (let s of fxState.stars) {
+
+        let a = 110 + sin(t * s.speed + s.phase) * 90;
+
+        fill(200, 225, 255, a);
+
+        circle(s.x, s.y, s.size);
+    }
+
+
+    // ---- Sky glow behind the spire ----
+
+    fxLight(400, 120, 420, [60, 110, 255], 0.22);
+
+    fxLight(400, 60, 220, [120, 200, 255], 0.2 + sin(t * 0.04) * 0.05);
+
+
+    // ---- Distant ruined hills ----
+
+    for (let layer = 0; layer < 2; layer++) {
+
+        fill(
+            layer === 0 ? 9 : 5,
+            layer === 0 ? 18 : 10,
+            layer === 0 ? 40 : 24
+        );
+
+        beginShape();
+
+        vertex(0, 600);
+
+        for (let x = 0; x <= 800; x += 20) {
+
+            let h =
+                noise(x * 0.006 + layer * 40) * 130 +
+                (layer === 0 ? 400 : 440);
+
+            vertex(x, h);
+        }
+
+        vertex(800, 600);
+
+        endShape(CLOSE);
+    }
+
+
+    // ---- The spire ----
+
+    // Rim light on the right side
+
+    fill(22, 44, 92);
+
+    beginShape();
+
+    vertex(400, 36);
+    vertex(412, 120);
+    vertex(420, 250);
+    vertex(452, 330);
+    vertex(500, 470);
+    vertex(560, 600);
+    vertex(400, 600);
+
+    endShape(CLOSE);
+
+
+    // Shadowed body
+
+    fill(9, 16, 38);
+
+    beginShape();
+
+    vertex(400, 36);
+    vertex(412, 120);
+    vertex(420, 250);
+    vertex(452, 330);
+    vertex(500, 470);
+    vertex(560, 600);
+    vertex(240, 600);
+    vertex(300, 470);
+    vertex(348, 330);
+    vertex(380, 250);
+    vertex(388, 120);
+
+    endShape(CLOSE);
+
+
+    // Right-hand highlight edge
+
+    stroke(110, 190, 255, 70);
+
+    strokeWeight(1.5);
+
+    noFill();
+
+    beginShape();
+
+    vertex(400, 36);
+    vertex(412, 120);
+    vertex(420, 250);
+    vertex(452, 330);
+    vertex(500, 470);
+    vertex(560, 600);
+
+    endShape();
+
+    noStroke();
+
+
+    // Ledges
+
+    fill(14, 26, 58);
+
+    for (let y = 170; y < 590; y += 84) {
+
+        let half = map(y, 36, 600, 14, 160);
+
+        rect(400 - half - 6, y, half * 2 + 12, 7, 2);
+    }
+
+
+    // Windows
+
+    for (let y = 150; y < 580; y += 42) {
+
+        let glow = 120 + sin(t * 0.05 + y * 0.7) * 90;
+
+        let half = map(y, 36, 600, 4, 52);
+
+        for (let k = -1; k <= 1; k += 2) {
+
+            if (abs(k) * half < 6) {
+
+                continue;
+            }
+
+            fill(120, 205, 255, glow);
+
+            rect(400 + k * half - 3, y, 6, 15, 3);
+        }
+
+        fill(110, 200, 255, glow);
+
+        rect(397, y + 3, 6, 10, 3);
+    }
+
+
+    // ---- Beacon ----
+
+    let pulse = 0.5 + sin(t * 0.06) * 0.5;
+
+    fxLight(400, 40, 150 + pulse * 40, [120, 210, 255], 0.55);
+
+    fxGodRays(400, 40, [120, 210, 255], 7, 380);
+
+    noStroke();
+
+    fill(230, 248, 255);
+
+    circle(400, 40, 9 + pulse * 3);
+
+
+    // ---- Drifting fog ----
+
+    for (let i = 0; i < 4; i++) {
+
+        let fy = 300 + i * 80;
+
+        let drift = ((t * (0.12 + i * 0.05)) + i * 260) % 1100 - 150;
+
+        fill(120, 170, 255, 10 + i * 3);
+
+        ellipse(drift, fy, 620, 70 + i * 12);
+
+        ellipse((drift + 560) % 1100 - 150, fy + 20, 520, 60 + i * 10);
+    }
 
 
     drawParticles();
 
 
-    // Tower
+    // ---- Readability backdrop for the title ----
 
-    noStroke();
+    ctx.save();
 
-    fill(10, 20, 45);
+    let back = ctx.createRadialGradient(400, 250, 20, 400, 250, 300);
 
-    quad(
-        295, 600,
-        505, 600,
-        465, 100,
-        335, 100
-    );
+    back.addColorStop(0, "rgba(2, 5, 14, 0.62)");
+    back.addColorStop(1, "rgba(2, 5, 14, 0)");
 
+    ctx.fillStyle = back;
 
-    // Windows
+    ctx.fillRect(0, 0, 800, 600);
 
-    for (let y = 150; y < 560; y += 65) {
-
-        let glow =
-            120 +
-            sin(frameCount * 0.05 + y) * 60;
+    ctx.restore();
 
 
-        fill(
-            80,
-            170,
-            255,
-            glow
-        );
-
-
-        rect(
-            385,
-            y,
-            30,
-            8,
-            4
-        );
-    }
-
-
-    // Overlay
-
-    fill(
-        3,
-        6,
-        18,
-        155
-    );
-
-    rect(
-        0,
-        0,
-        width,
-        height
-    );
-
+    // ---- Title ----
 
     textAlign(CENTER);
 
-
-    fill(
-        100,
-        190,
-        255
-    );
-
-    textSize(14);
-
-    text(
-        "AN ORIGINAL P5.JS RPG",
-        400,
-        130
-    );
-
+    textFont(UI_FONT);
 
     textStyle(BOLD);
 
+    fill(120, 205, 255);
+
+    textSize(15);
+
+    fxGlowText("AN ORIGINAL P5.JS RPG", 400, 112, [80, 180, 255], 10);
+
+
+    textFont(TITLE_FONT);
 
     fill(255);
 
-    textSize(54);
+    textSize(46);
 
-    text(
-        "THE HOLLOW",
-        400,
-        215
-    );
+    fxGlowText("THE HOLLOW", 400, 205, [0, 0, 0], 14);
 
 
-    let titleGlow =
-        190 +
-        sin(frameCount * 0.05) * 60;
+    let titleGlow = 215 + sin(t * 0.05) * 40;
+
+    fill(150, 215, 255, titleGlow);
+
+    textSize(92);
+
+    fxGlowText("SPIRE", 400, 292, [60, 150, 255], 28);
 
 
-    fill(
-        100,
-        190,
-        255,
-        titleGlow
-    );
-
-    textSize(72);
-
-    text(
-        "SPIRE",
-        400,
-        285
-    );
-
+    textFont(UI_FONT);
 
     textStyle(NORMAL);
 
 
-    stroke(
-        100,
-        190,
-        255
-    );
+    stroke(110, 195, 255, 200);
 
-    strokeWeight(2);
+    strokeWeight(1.5);
 
-    line(
-        270,
-        310,
-        530,
-        310
-    );
-
+    line(250, 316, 550, 316);
 
     noStroke();
 
+    fill(110, 195, 255);
 
-    fill(
-        180,
-        200,
-        225
-    );
+    push();
 
-    textSize(16);
+    translate(400, 316);
 
-    text(
-        "ASCEND  •  FIGHT  •  SURVIVE",
-        400,
-        350
-    );
+    rotate(PI / 4);
+
+    rect(-4, -4, 8, 8);
+
+    pop();
 
 
-    let buttonGlow =
-        60 +
-        sin(frameCount * 0.07) * 35;
+    fill(185, 205, 230);
+
+    textSize(18);
+
+    text("ASCEND   ◆   FIGHT   ◆   SURVIVE", 400, 352);
 
 
-    fill(
-        100,
-        190,
-        255,
-        buttonGlow
-    );
+    // ---- Press enter ----
 
-    rect(
-        280,
-        385,
-        240,
-        65,
-        8
-    );
+    let bx = 280;
+    let by = 388;
 
+    let bGlow = 0.55 + sin(t * 0.07) * 0.3;
 
-    fill(
-        5,
-        10,
-        25
-    );
+    fxLight(400, by + 30, 210, [80, 170, 255], 0.22 * bGlow);
 
-    rect(
-        286,
-        391,
-        228,
-        53,
-        6
-    );
-
+    fxPanel(bx, by, 240, 60, [110, 200, 255], 12, 0.92);
 
     fill(255);
 
-    textSize(20);
+    textStyle(BOLD);
 
-    text(
-        "PRESS ENTER",
-        400,
-        425
-    );
+    textSize(24);
+
+    fxGlowText("PRESS  ENTER", 400, by + 39, [90, 190, 255], 8 * bGlow);
+
+    textStyle(NORMAL);
 
 
-    fill(
-        130,
-        150,
-        180
-    );
+    fill(120, 142, 172);
 
-    textSize(13);
+    textSize(15);
 
-    text(
-        "WASD / ARROWS  •  MOVE",
-        400,
-        500
-    );
+    text("WASD / ARROWS  •  MOVE", 400, 502);
 
-    text(
-        "E  •  INTERACT      ENTER  •  SELECT",
-        400,
-        525
-    );
+    text("E  •  INTERACT        ENTER  •  SELECT", 400, 526);
 }
 
 
@@ -779,6 +876,8 @@ function explorationMode() {
     );
 
 
+    drawTorches();
+
     drawDoor();
 
 
@@ -944,14 +1043,17 @@ function drawPlayer() {
     push();
 
 
-    let floating =
-        sin(frameCount * 0.08) * 3;
+    let floating = sin(frameCount * 0.08) * 3;
+
+    let rgb = fxAccent();
 
 
-    translate(
-        playerX,
-        playerY + floating
-    );
+    // Light the player carries
+
+    fxLight(playerX, playerY + floating, 120, rgb, 0.2);
+
+
+    translate(playerX, playerY + floating);
 
 
     noStroke();
@@ -959,77 +1061,51 @@ function drawPlayer() {
 
     // Shadow
 
-    fill(
-        0,
-        0,
-        0,
-        100
-    );
+    fill(0, 0, 0, 110);
 
-    ellipse(
-        0,
-        20,
-        45,
-        14
-    );
+    ellipse(0, 24 - floating, 46, 14);
 
 
     // Aura
 
-    let auraSize =
-        52 +
-        sin(frameCount * 0.07) * 6;
+    let auraSize = 56 + sin(frameCount * 0.07) * 6;
+
+    fill(rgb[0], rgb[1], rgb[2], 22);
+
+    circle(0, 0, auraSize + 22);
+
+    fill(rgb[0], rgb[1], rgb[2], 42);
+
+    circle(0, 0, auraSize);
 
 
-    fill(
-        100,
-        190,
-        255,
-        40
-    );
+    // Orbiting sparks
 
-    circle(
-        0,
-        0,
-        auraSize
-    );
+    for (let i = 0; i < 3; i++) {
+
+        let a = frameCount * 0.05 + i * TWO_PI / 3;
+
+        fill(255, 255, 255, 190);
+
+        circle(cos(a) * 24, sin(a) * 11, 3);
+    }
 
 
     // Body
 
-    fill(
-        220,
-        240,
-        255
-    );
+    fill(224, 242, 255);
 
-    circle(
-        0,
-        0,
-        30
-    );
+    circle(0, 0, 30);
 
 
-    fill(
-        20,
-        40,
-        80
-    );
+    fill(20, 40, 80);
 
-    circle(
-        0,
-        0,
-        12
-    );
+    circle(0, 0, 12);
 
 
     fill(255);
 
-    circle(
-        0,
-        0,
-        5
-    );
+    circle(0, 0, 5);
 
 
     pop();
@@ -1658,97 +1734,79 @@ function drawDoor() {
     push();
 
 
+    let open = !enemy.alive && currentFloor < 3;
+
+    let rgb = fxAccent();
+
+
     noStroke();
+
+
+    // Arch glow when the way is open
+
+    if (open) {
+
+        fxLight(400, 190, 210, rgb, 0.35 + sin(frameCount * 0.08) * 0.12);
+    }
 
 
     // Door frame
 
-    fill(
-        25,
-        35,
-        70
-    );
+    fill(25, 35, 70);
 
-    rect(
-        335,
-        95,
-        130,
-        165,
-        8
-    );
+    rect(335, 95, 130, 165, 8);
+
+    fill(40, 55, 100);
+
+    rect(335, 95, 8, 165, 4);
+
+    rect(457, 95, 8, 165, 4);
 
 
-    if (
-        enemy.alive ||
-        currentFloor === 3
-    ) {
+    if (!open) {
 
-        fill(
-            15,
-            20,
-            40
-        );
+        fill(15, 20, 40);
 
     } else {
 
-        let doorGlow =
-            110 +
-            sin(frameCount * 0.08) * 50;
+        let doorGlow = 130 + sin(frameCount * 0.08) * 50;
 
-
-        fill(
-            50,
-            120,
-            190,
-            doorGlow
-        );
+        fill(rgb[0] * 0.6, rgb[1] * 0.7, rgb[2] * 0.85, doorGlow);
     }
 
 
-    rect(
-        350,
-        110,
-        100,
-        150,
-        6
-    );
+    rect(350, 110, 100, 150, 6);
+
+
+    // Rising light motes inside an open door
+
+    if (open) {
+
+        for (let i = 0; i < 6; i++) {
+
+            let my = 255 - ((frameCount * 0.8 + i * 26) % 145);
+
+            fill(255, 255, 255, 140);
+
+            circle(362 + (i * 17) % 76, my, 2.5);
+        }
+    }
 
 
     // Door symbol
 
-    stroke(
-        100,
-        190,
-        255,
-        130
-    );
+    stroke(rgb[0], rgb[1], rgb[2], open ? 220 : 110);
 
     strokeWeight(2);
 
     noFill();
 
 
-    circle(
-        400,
-        175,
-        42
-    );
+    circle(400, 175, 42);
 
+    line(400, 154, 400, 196);
 
-    line(
-        400,
-        154,
-        400,
-        196
-    );
-
-
-    line(
-        379,
-        175,
-        421,
-        175
-    );
+    line(379, 175, 421, 175);
 
 
     pop();
@@ -1761,163 +1819,115 @@ function drawDoor() {
 
 function drawExplorationHUD() {
 
-    noStroke();
+    // Torch light and the creeping dark come first,
+    // so the HUD stays crisp on top of them.
+
+    drawExplorationLighting();
 
 
-    fill(
-        5,
-        10,
-        25,
-        225
-    );
+    let rgb = fxAccent();
 
-    rect(
-        20,
-        20,
-        235,
-        88,
-        8
-    );
+
+    // ---- Floor panel ----
+
+    fxPanel(20, 20, 240, 90, rgb, 10);
 
 
     textAlign(LEFT);
 
-
-    fill(
-        100,
-        190,
-        255
-    );
-
-    textSize(11);
+    textStyle(BOLD);
 
 
-    text(
-        "THE HOLLOW SPIRE",
-        35,
-        43
-    );
+    fill(rgb[0], rgb[1], rgb[2]);
+
+    textSize(13);
+
+    text("THE HOLLOW SPIRE", 38, 43);
 
 
     fill(255);
 
-    textStyle(BOLD);
+    textFont(TITLE_FONT);
 
-    textSize(22);
-
+    textSize(23);
 
     if (currentFloor === 3) {
 
-        text(
-            "FINAL FLOOR",
-            35,
-            70
-        );
+        text("FINAL FLOOR", 38, 72);
 
     } else {
 
-        text(
-            "FLOOR 0" +
-            currentFloor,
-            35,
-            70
-        );
+        text("FLOOR 0" + currentFloor, 38, 72);
     }
 
+    textFont(UI_FONT);
 
     textStyle(NORMAL);
 
 
-    fill(
-        150,
-        170,
-        200
-    );
+    fill(150, 172, 204);
 
-    textSize(11);
-
+    textSize(14);
 
     if (enemy.alive) {
 
-        text(
-            "DEFEAT THE GUARDIAN",
-            35,
-            92
-        );
+        text("DEFEAT THE GUARDIAN", 38, 96);
 
     } else if (currentFloor < 3) {
 
-        text(
-            "THE PATH ABOVE IS OPEN",
-            35,
-            92
-        );
+        text("THE PATH ABOVE IS OPEN", 38, 96);
 
     } else {
 
-        text(
-            "THE SUMMIT AWAITS",
-            35,
-            92
-        );
+        text("THE SUMMIT AWAITS", 38, 96);
     }
 
 
-    // Player stats
+    // ---- Player panel ----
 
-    fill(
-        5,
-        10,
-        25,
-        225
-    );
+    fxPanel(535, 20, 245, 104, rgb, 10);
 
-    rect(
-        550,
-        20,
-        225,
-        95,
-        8
-    );
 
+    textStyle(BOLD);
+
+    textSize(14);
 
     fill(255);
 
-    textSize(13);
+    text("HP", 555, 46);
+
+    text("SP", 555, 71);
 
 
-    text(
-        "HP  " +
-        playerHP +
-        "/" +
-        playerMaxHP,
-        575,
-        45
-    );
+    fxBar("hp", 585, 35, 135, 11, playerHP, playerMaxHP, [40, 200, 140], [110, 255, 190]);
+
+    fxBar("sp", 585, 60, 135, 11, playerSP, 50, [60, 120, 255], [130, 190, 255]);
 
 
-    text(
-        "SP  " +
-        playerSP +
-        "/50",
-        575,
-        70
-    );
+    textStyle(NORMAL);
+
+    textSize(12);
+
+    textAlign(RIGHT);
+
+    fill(190, 205, 225);
+
+    text(playerHP + "/" + playerMaxHP, 765, 46);
+
+    text(playerSP + "/50", 765, 71);
 
 
-    fill(
-        100,
-        220,
-        255
-    );
+    textAlign(LEFT);
 
+    fill(110, 220, 255);
 
-    text(
-        "ELIXIR  ×" +
-        healingElixirs,
-        575,
-        95
-    );
+    textSize(14);
+
+    textStyle(BOLD);
+
+    text("✦  ELIXIR  ×" + healingElixirs, 555, 105);
+
+    textStyle(NORMAL);
 }
 
 
@@ -1927,47 +1937,17 @@ function drawExplorationHUD() {
 
 function drawInteractionBox(message) {
 
-    noStroke();
+    let pulse = 0.6 + sin(frameCount * 0.1) * 0.4;
+
+    let rgb = fxAccent();
 
 
-    fill(
-        5,
-        10,
-        25,
-        235
-    );
+    fxLight(400, 540, 150, rgb, 0.18 * pulse);
 
-    rect(
-        285,
-        515,
-        230,
-        50,
-        8
-    );
-
-
-    stroke(
-        100,
-        190,
-        255
-    );
-
-    strokeWeight(2);
-
-    noFill();
-
-
-    rect(
-        285,
-        515,
-        230,
-        50,
-        8
-    );
+    fxPanel(285, 513, 230, 52, rgb, 11);
 
 
     noStroke();
-
 
     fill(255);
 
@@ -1975,15 +1955,9 @@ function drawInteractionBox(message) {
 
     textStyle(BOLD);
 
-    textSize(16);
+    textSize(19);
 
-
-    text(
-        message,
-        400,
-        547
-    );
-
+    fxGlowText(message, 400, 546, rgb, 6 * pulse);
 
     textStyle(NORMAL);
 }
@@ -2160,37 +2134,43 @@ function drawKeyBox(letter, x, y) {
 
 function drawParticles() {
 
+    let rgb = fxAccent();
+
     noStroke();
 
 
     for (let p of particles) {
 
+        let twinkle =
+            0.55 +
+            sin(frameCount * 0.05 + p.x * 0.1) * 0.45;
+
+
+        fill(rgb[0], rgb[1], rgb[2], 30 * twinkle);
+
+        circle(p.x, p.y, p.size * 3.4);
+
+
         fill(
-            100,
-            170,
-            255,
-            80
+            min(255, rgb[0] + 70),
+            min(255, rgb[1] + 70),
+            min(255, rgb[2] + 70),
+            120 * twinkle
         );
 
-
-        circle(
-            p.x,
-            p.y,
-            p.size
-        );
+        circle(p.x, p.y, p.size);
 
 
-        p.y -=
-            p.speed;
+        p.y -= p.speed;
+
+        p.x += sin(frameCount * 0.02 + p.y * 0.03) * 0.25;
 
 
         if (p.y < 0) {
 
-            p.y =
-                height;
+            p.y = height;
 
-            p.x =
-                random(width);
+            p.x = random(width);
         }
     }
 }
@@ -2222,122 +2202,84 @@ function drawCutscene() {
     cutsceneTimer++;
 
 
-    background(
-        3,
-        6,
-        16
-    );
+    let rgb = fxAccent();
+
+
+    background(3, 6, 16);
+
+
+    // Rising light streaks
+
+    stroke(rgb[0], rgb[1], rgb[2], 90);
+
+    strokeWeight(2);
+
+    for (let i = 0; i < 14; i++) {
+
+        let x = 120 + (i * 97) % 560;
+
+        let speed = 8 + (i % 4) * 4;
+
+        let y = height - ((frameCount * speed + i * 70) % (height + 160));
+
+        line(x, y, x, y + 60 + (i % 3) * 30);
+    }
+
+    noStroke();
 
 
     drawParticles();
 
+    fxLight(400, 300, 340, rgb, 0.16);
+
 
     let fadeAmount = 255;
 
-
     if (cutsceneTimer < 45) {
 
-        fadeAmount =
-            map(
-                cutsceneTimer,
-                0,
-                45,
-                0,
-                255
-            );
+        fadeAmount = map(cutsceneTimer, 0, 45, 0, 255);
     }
 
 
     textAlign(CENTER);
 
-
-    fill(
-        100,
-        190,
-        255,
-        fadeAmount
-    );
-
-    textSize(13);
-
-
-    text(
-        "THE HOLLOW SPIRE",
-        400,
-        220
-    );
-
-
-    fill(
-        255,
-        255,
-        255,
-        fadeAmount
-    );
-
     textStyle(BOLD);
 
-    textSize(42);
+
+    fill(rgb[0], rgb[1], rgb[2], fadeAmount);
+
+    textSize(14);
+
+    text("THE HOLLOW SPIRE", 400, 220);
 
 
-    text(
-        "ASCENDING",
-        400,
-        285
-    );
+    textFont(TITLE_FONT);
 
+    fill(255, 255, 255, fadeAmount);
+
+    textSize(48);
+
+    fxGlowText("ASCENDING", 400, 285, rgb, 16);
+
+
+    textFont(UI_FONT);
 
     textStyle(NORMAL);
 
+    fill(160, 180, 210, fadeAmount);
 
-    fill(
-        160,
-        180,
-        210,
-        fadeAmount
-    );
+    textSize(18);
 
-    textSize(16);
+    text("The tower grows colder...", 400, 328);
 
 
-    text(
-        "The tower grows colder...",
-        400,
-        325
-    );
+    // Floor counter
 
+    fill(rgb[0], rgb[1], rgb[2], fadeAmount);
 
-    // Ascending line effect
+    textSize(14);
 
-    stroke(
-        100,
-        190,
-        255,
-        100
-    );
-
-    strokeWeight(2);
-
-
-    for (let i = 0; i < 8; i++) {
-
-        let lineY =
-            (
-                frameCount * 4 +
-                i * 80
-            ) % height;
-
-
-        line(
-            250,
-            lineY,
-            550,
-            lineY
-        );
-    }
-
-
-    noStroke();
+    text("FLOOR 0" + cutsceneNextFloor, 400, 372);
 
 
     if (cutsceneTimer >= 150) {
@@ -2605,191 +2547,181 @@ function drawHealingElixirReward() {
 
 function battleMode() {
 
+    let rgb = fxAccent();
+
+    let ctx = drawingContext;
+
+
+    // ---- Backdrop ----
+
+    ctx.save();
+
+    let bg = ctx.createLinearGradient(0, 0, 0, 600);
+
     if (currentFloor === 3) {
 
-        background(
-            30,
-            4,
-            18
-        );
+        bg.addColorStop(0, "#12020a");
+        bg.addColorStop(1, "#3a0a22");
 
     } else if (currentFloor === 2) {
 
-        background(
-            12,
-            7,
-            30
-        );
+        bg.addColorStop(0, "#08051a");
+        bg.addColorStop(1, "#231452");
 
     } else {
 
-        background(
-            8,
-            10,
-            30
-        );
+        bg.addColorStop(0, "#040816");
+        bg.addColorStop(1, "#102452");
     }
+
+    ctx.fillStyle = bg;
+
+    ctx.fillRect(0, 0, 800, 600);
+
+    ctx.restore();
 
 
     drawParticles();
 
 
+    // Huge rune circle turning behind the enemy
+
+    push();
+
+    translate(400, 235);
+
+    noFill();
+
+    stroke(rgb[0], rgb[1], rgb[2], 38);
+
+    strokeWeight(2);
+
+    circle(0, 0, 330);
+
+    circle(0, 0, 290);
+
+    rotate(frameCount * 0.004);
+
+    for (let i = 0; i < 12; i++) {
+
+        rotate(TWO_PI / 12);
+
+        line(0, -165, 0, -150);
+    }
+
+    rotate(-frameCount * 0.009);
+
+    for (let i = 0; i < 6; i++) {
+
+        rotate(TWO_PI / 6);
+
+        line(0, -145, 0, -100);
+    }
+
+    pop();
+
+    fxLight(400, 235, 260, rgb, 0.22);
+
+
+    // Arena floor
+
+    noStroke();
+
+    fill(0, 0, 0, 90);
+
+    ellipse(400, 326, 300, 44);
+
+    ellipse(150, 378, 130, 24);
+
+    noFill();
+
+    stroke(rgb[0], rgb[1], rgb[2], 60);
+
+    strokeWeight(1.5);
+
+    ellipse(400, 326, 300, 44);
+
+    ellipse(150, 378, 130, 24);
+
+    noStroke();
+
+
+    // Header
+
     textAlign(CENTER);
 
+    textStyle(BOLD);
+
+    textSize(16);
 
     if (currentFloor === 3) {
 
-        fill(
-            255,
-            70,
-            100
-        );
+        fill(255, 70, 100);
 
-        textSize(16);
-
-
-        text(
-            "FINAL BATTLE",
-            400,
-            40
-        );
+        fxGlowText("—  FINAL BATTLE  —", 400, 40, [255, 40, 90], 10);
 
     } else {
 
-        fill(
-            100,
-            190,
-            255
-        );
+        fill(110, 195, 255);
 
-        textSize(16);
-
-
-        text(
-            "ENCOUNTER",
-            400,
-            40
-        );
+        fxGlowText("—  ENCOUNTER  —", 400, 40, [60, 160, 255], 8);
     }
 
 
-    // Enemy
+    // Enemy and player
 
     drawBattleMonster();
-
-
-    // Player
 
     drawBattlePlayer();
 
 
+    // Enemy name plate
+
+    textFont(TITLE_FONT);
+
     fill(255);
 
+    textSize(currentFloor === 3 ? 27 : 23);
 
-    if (currentFloor === 3) {
+    textStyle(BOLD);
 
-        textSize(27);
+    fxGlowText(enemy.name, 400, 348, rgb, 8);
 
-    } else {
+    textFont(UI_FONT);
 
-        textSize(23);
-    }
-
-
-    text(
-        enemy.name,
-        400,
-        335
-    );
+    textStyle(NORMAL);
 
 
-    // ========================================================
-    // ENEMY HP BAR
-    // ========================================================
+    // Enemy HP bar
 
-    fill(40);
+    let enemyBar =
+        currentFloor === 3 ? [[255, 40, 90], [255, 130, 150]] :
+        currentFloor === 2 ? [[140, 70, 235], [210, 150, 255]] :
+        [[60, 150, 255], [140, 220, 255]];
 
-
-    rect(
-        250,
-        355,
-        300,
-        13,
-        6
-    );
+    fxBar("enemy", 250, 360, 300, 12, enemy.hp, enemy.maxHP, enemyBar[0], enemyBar[1]);
 
 
-    let enemyHPWidth =
-        map(
-            constrain(
-                enemy.hp,
-                0,
-                enemy.maxHP
-            ),
-            0,
-            enemy.maxHP,
-            0,
-            300
-        );
+    textSize(12);
+
+    fill(170, 190, 215);
+
+    text(max(0, enemy.hp) + " / " + enemy.maxHP, 400, 386);
 
 
-    if (currentFloor === 3) {
-
-        fill(
-            255,
-            40,
-            90
-        );
-
-    } else if (currentFloor === 2) {
-
-        fill(
-            160,
-            80,
-            240
-        );
-
-    } else {
-
-        fill(
-            80,
-            170,
-            255
-        );
-    }
-
-
-    rect(
-        250,
-        355,
-        enemyHPWidth,
-        13,
-        6
-    );
-
-
-    // ========================================================
-    // BATTLE MESSAGE
-    // ========================================================
+    // Battle message
 
     if (battleMessage !== "") {
 
-        fill(
-            255,
-            220,
-            80
-        );
+        fill(255, 222, 90);
 
-        textSize(14);
+        textStyle(BOLD);
 
-        textAlign(CENTER);
+        textSize(15);
 
+        fxGlowText(battleMessage, 400, 403, [255, 190, 40], 6);
 
-        text(
-            battleMessage,
-            400,
-            400
-        );
+        textStyle(NORMAL);
     }
 
 
@@ -3008,167 +2940,63 @@ function drawBattlePlayer() {
 
 function drawBattlePlayerHUD() {
 
+    let rgb = fxAccent();
+
+    fxPanel(30, 440, 270, 135, rgb, 12);
+
+
     noStroke();
-
-
-    fill(
-        5,
-        10,
-        25,
-        235
-    );
-
-    rect(
-        30,
-        440,
-        270,
-        135,
-        10
-    );
-
-
-    fill(255);
 
     textAlign(LEFT);
 
-    textSize(14);
+    textStyle(BOLD);
 
 
-    text(
-        "PLAYER",
-        50,
-        468
-    );
-
-
-    text(
-        "HP",
-        50,
-        505
-    );
-
-
-    fill(40);
-
-
-    rect(
-        85,
-        494,
-        160,
-        12,
-        5
-    );
-
-
-    fill(
-        80,
-        220,
-        160
-    );
-
-
-    let playerHPWidth =
-        map(
-            constrain(
-                playerHP,
-                0,
-                playerMaxHP
-            ),
-            0,
-            playerMaxHP,
-            0,
-            160
-        );
-
-
-    rect(
-        85,
-        494,
-        playerHPWidth,
-        12,
-        5
-    );
-
-
-    // HP numbers
-
-    fill(255);
-
-    textSize(11);
-
-
-    text(
-        playerHP +
-        " / " +
-        playerMaxHP,
-        250,
-        505
-    );
-
-
-    // SP
-
-    fill(255);
+    fill(rgb[0], rgb[1], rgb[2]);
 
     textSize(14);
 
-
-    text(
-        "SP",
-        50,
-        535
-    );
+    text("PLAYER", 50, 466);
 
 
-    fill(40);
+    fill(255);
+
+    textSize(15);
+
+    text("HP", 50, 503);
+
+    text("SP", 50, 533);
 
 
-    rect(
-        85,
-        524,
-        160,
-        12,
-        5
-    );
+    fxBar("hp", 85, 492, 145, 13, playerHP, playerMaxHP, [40, 200, 140], [110, 255, 190]);
+
+    fxBar("sp", 85, 522, 145, 13, playerSP, 50, [60, 120, 255], [130, 190, 255]);
 
 
-    fill(
-        80,
-        150,
-        255
-    );
-
-
-    rect(
-        85,
-        524,
-        map(
-            playerSP,
-            0,
-            50,
-            0,
-            160
-        ),
-        12,
-        5
-    );
-
-
-    fill(
-        100,
-        220,
-        255
-    );
+    textStyle(NORMAL);
 
     textSize(12);
 
+    textAlign(RIGHT);
 
-    text(
-        "HEALING ELIXIR ×" +
-        healingElixirs,
-        50,
-        558
-    );
+    fill(190, 205, 225);
+
+    text(playerHP + "/" + playerMaxHP, 285, 503);
+
+    text(playerSP + "/50", 285, 533);
+
+
+    textAlign(LEFT);
+
+    fill(110, 220, 255);
+
+    textSize(14);
+
+    textStyle(BOLD);
+
+    text("✦  ELIXIR  ×" + healingElixirs, 50, 561);
+
+    textStyle(NORMAL);
 }
 
 
@@ -3178,244 +3006,151 @@ function drawBattlePlayerHUD() {
 
 function drawBattleMenu() {
 
+    let rgb = fxAccent();
+
+    fxPanel(510, 405, 265, 175, rgb, 12);
+
+
     noStroke();
 
 
-    fill(
-        5,
-        10,
-        25,
-        235
-    );
+    // One highlighted row
+
+    function row(label, rightLabel, y, selected) {
+
+        let ctx = drawingContext;
+
+        if (selected) {
+
+            ctx.save();
+
+            let g = ctx.createLinearGradient(522, 0, 765, 0);
+
+            g.addColorStop(0, "rgba(255, 215, 90, 0.28)");
+            g.addColorStop(1, "rgba(255, 215, 90, 0)");
+
+            ctx.fillStyle = g;
+
+            ctx.fillRect(522, y - 20, 243, 28);
+
+            ctx.fillStyle = "rgb(255, 215, 90)";
+
+            ctx.fillRect(522, y - 20, 3, 28);
+
+            ctx.restore();
+        }
+
+        textAlign(LEFT);
+
+        textStyle(BOLD);
+
+        textSize(19);
+
+        if (selected) {
+
+            fill(255, 226, 110);
+
+            text("▶  " + label, 536, y);
+
+        } else {
+
+            fill(190, 204, 224);
+
+            text(label, 556, y);
+        }
+
+        if (rightLabel) {
+
+            textAlign(RIGHT);
+
+            textStyle(NORMAL);
+
+            textSize(14);
+
+            fill(selected ? color(255, 226, 110) : color(130, 150, 180));
+
+            text(rightLabel, 760, y);
+        }
+
+        textStyle(NORMAL);
+    }
 
 
-    rect(
-        510,
-        405,
-        265,
-        175,
-        10
-    );
-
-
-    // ========================================================
-    // MAIN MENU
-    // ========================================================
+    // ---- Main ----
 
     if (menuState === "main") {
 
-        textAlign(RIGHT);
+        for (let i = 0; i < battleOptions.length; i++) {
 
-        textSize(18);
-
-
-        for (
-            let i = 0;
-            i < battleOptions.length;
-            i++
-        ) {
-
-            if (i === selectedOption) {
-
-                fill(
-                    255,
-                    220,
-                    80
-                );
-
-
-                text(
-                    "◆  " +
-                    battleOptions[i],
-                    740,
-                    450 + i * 32
-                );
-
-            } else {
-
-                fill(200);
-
-
-                text(
-                    battleOptions[i],
-                    740,
-                    450 + i * 32
-                );
-            }
+            row(battleOptions[i], "", 443 + i * 34, i === selectedOption);
         }
     }
 
 
-    // ========================================================
-    // SKILL MENU
-    // ========================================================
+    // ---- Skills ----
 
     else if (menuState === "skill") {
 
-        fill(
-            100,
-            190,
-            255
-        );
+        fill(rgb[0], rgb[1], rgb[2]);
 
         textAlign(LEFT);
 
-        textSize(11);
+        textStyle(BOLD);
+
+        textSize(12);
+
+        text("SKILLS", 536, 428);
+
+        textStyle(NORMAL);
 
 
-        text(
-            "SKILLS",
-            535,
-            430
-        );
+        for (let i = 0; i < skillOptions.length; i++) {
 
-
-        textAlign(RIGHT);
-
-        textSize(17);
-
-
-        for (
-            let i = 0;
-            i < skillOptions.length;
-            i++
-        ) {
-
-            let displayText =
-                skillOptions[i];
-
-
-            if (i < 2) {
-
-                displayText +=
-                    "   10 SP";
-            }
-
-
-            if (i === selectedSkill) {
-
-                fill(
-                    255,
-                    220,
-                    80
-                );
-
-
-                text(
-                    "◆  " +
-                    displayText,
-                    745,
-                    470 + i * 38
-                );
-
-            } else {
-
-                fill(200);
-
-
-                text(
-                    displayText,
-                    745,
-                    470 + i * 38
-                );
-            }
+            row(
+                skillOptions[i],
+                i < 2 ? "10 SP" : "",
+                470 + i * 38,
+                i === selectedSkill
+            );
         }
     }
 
 
-    // ========================================================
-    // ITEM MENU
-    // ========================================================
+    // ---- Items ----
 
     else if (menuState === "item") {
 
-        fill(
-            100,
-            220,
-            255
-        );
+        fill(110, 220, 255);
 
         textAlign(LEFT);
 
-        textSize(11);
+        textStyle(BOLD);
+
+        textSize(12);
+
+        text("INVENTORY", 536, 428);
+
+        textStyle(NORMAL);
 
 
-        text(
-            "INVENTORY",
-            535,
-            430
-        );
+        for (let i = 0; i < itemOptions.length; i++) {
 
-
-        textAlign(RIGHT);
-
-        textSize(16);
-
-
-        for (
-            let i = 0;
-            i < itemOptions.length;
-            i++
-        ) {
-
-            let displayText =
-                itemOptions[i];
-
-
-            if (i === 0) {
-
-                displayText +=
-                    "   ×" +
-                    healingElixirs;
-            }
-
-
-            if (i === selectedItem) {
-
-                fill(
-                    255,
-                    220,
-                    80
-                );
-
-
-                text(
-                    "◆  " +
-                    displayText,
-                    750,
-                    475 + i * 42
-                );
-
-            } else {
-
-                fill(200);
-
-
-                text(
-                    displayText,
-                    750,
-                    475 + i * 42
-                );
-            }
+            row(
+                itemOptions[i],
+                i === 0 ? "×" + healingElixirs : "",
+                474 + i * 40,
+                i === selectedItem
+            );
         }
 
 
-        fill(
-            130,
-            160,
-            190
-        );
+        fill(130, 160, 190);
 
         textAlign(CENTER);
 
-        textSize(10);
+        textSize(11);
 
-
-        text(
-            "FULL HP + SP • USES YOUR TURN",
-            645,
-            558
-        );
+        text("FULL HP + SP  •  USES YOUR TURN", 642, 566);
     }
 }
 
@@ -4069,82 +3804,62 @@ function createDamageNumber(
 
 function drawDamageNumbers() {
 
-    for (
-        let i = damageNumbers.length - 1;
-        i >= 0;
-        i--
-    ) {
+    for (let i = damageNumbers.length - 1; i >= 0; i--) {
 
-        let damage =
-            damageNumbers[i];
-
+        let damage = damageNumbers[i];
 
         damage.y -= 0.7;
 
         damage.life--;
 
 
+        let a = constrain(damage.life * 5, 0, 255);
+
+        let pop = 1 + max(0, damage.life - 50) * 0.04;
+
+
         textAlign(CENTER);
 
         textStyle(BOLD);
 
+        textFont(TITLE_FONT);
+
+        stroke(8, 10, 30, a);
+
+        strokeWeight(5);
+
 
         if (damage.weak) {
 
-            fill(
-                255,
-                220,
-                80,
-                damage.life * 4
-            );
+            fill(255, 220, 80, a);
 
-            textSize(23);
+            textSize(24 * pop);
 
+            text("WEAK!", damage.x, damage.y - 30);
 
-            text(
-                "WEAK!",
-                damage.x,
-                damage.y - 24
-            );
-
-
-            fill(
-                255,
-                245,
-                190,
-                damage.life * 4
-            );
+            fill(255, 245, 190, a);
 
         } else {
 
-            fill(
-                255,
-                255,
-                255,
-                damage.life * 4
-            );
+            fill(255, 255, 255, a);
         }
 
 
-        textSize(28);
+        textSize(34 * pop);
+
+        text(damage.amount, damage.x, damage.y);
 
 
-        text(
-            damage.amount,
-            damage.x,
-            damage.y
-        );
+        noStroke();
 
+        textFont(UI_FONT);
 
         textStyle(NORMAL);
 
 
         if (damage.life <= 0) {
 
-            damageNumbers.splice(
-                i,
-                1
-            );
+            damageNumbers.splice(i, 1);
         }
     }
 }
@@ -5388,161 +5103,76 @@ function drawSpireRelic(x, y) {
 
 function gameOverScreen() {
 
-    background(
-        12,
-        3,
-        10
-    );
+    background(14, 3, 10);
 
 
     drawParticles();
 
 
-    // Dark overlay
+    fxLight(400, 260, 420, [255, 40, 70], 0.22 + sin(frameCount * 0.04) * 0.05);
 
-    fill(
-        0,
-        0,
-        0,
-        120
-    );
 
     noStroke();
 
+    fill(0, 0, 0, 110);
 
-    rect(
-        0,
-        0,
-        width,
-        height
-    );
+    rect(0, 0, width, height);
 
 
     textAlign(CENTER);
 
+    textStyle(BOLD);
 
-    fill(
-        255,
-        70,
-        90
-    );
+    fill(255, 70, 90);
+
+    textSize(15);
+
+    text("THE HOLLOW SPIRE", 400, 180);
+
+
+    textFont(TITLE_FONT);
+
+    fill(255);
+
+    textSize(54);
+
+    fxGlowText("YOU HAVE FALLEN", 400, 252, [255, 40, 70], 20);
+
+
+    textFont(UI_FONT);
+
+    textStyle(NORMAL);
+
+    fill(170, 180, 200);
+
+    textSize(18);
+
+    text("The tower consumes another challenger.", 400, 296);
+
+
+    let g = 0.55 + sin(frameCount * 0.08) * 0.3;
+
+    fxLight(400, 385, 200, [255, 70, 90], 0.2 * g);
+
+    fxPanel(285, 352, 230, 64, [255, 80, 100], 12, 0.92);
+
+
+    fill(255);
+
+    textStyle(BOLD);
+
+    textSize(21);
+
+    fxGlowText("PRESS R TO RESTART", 400, 392, [255, 70, 90], 8 * g);
+
+    textStyle(NORMAL);
+
+
+    fill(120, 130, 150);
 
     textSize(14);
 
-
-    text(
-        "THE HOLLOW SPIRE",
-        400,
-        180
-    );
-
-
-    fill(255);
-
-    textStyle(BOLD);
-
-    textSize(52);
-
-
-    text(
-        "YOU HAVE FALLEN",
-        400,
-        250
-    );
-
-
-    textStyle(NORMAL);
-
-
-    fill(
-        170,
-        180,
-        200
-    );
-
-    textSize(16);
-
-
-    text(
-        "The tower consumes another challenger.",
-        400,
-        295
-    );
-
-
-    // Restart box
-
-    let restartGlow =
-        60 +
-        sin(
-            frameCount * 0.08
-        ) * 30;
-
-
-    fill(
-        255,
-        70,
-        90,
-        restartGlow
-    );
-
-
-    rect(
-        285,
-        350,
-        230,
-        65,
-        8
-    );
-
-
-    fill(
-        20,
-        5,
-        12
-    );
-
-
-    rect(
-        291,
-        356,
-        218,
-        53,
-        6
-    );
-
-
-    fill(255);
-
-    textStyle(BOLD);
-
-    textSize(19);
-
-
-    text(
-        "PRESS R TO RESTART",
-        400,
-        389
-    );
-
-
-    textStyle(NORMAL);
-
-
-    fill(
-        120,
-        130,
-        150
-    );
-
-    textSize(12);
-
-
-    text(
-        "Return to the beginning of the Spire",
-        400,
-        455
-    );
+    text("Return to the beginning of the Spire", 400, 455);
 }
 
 
@@ -5552,180 +5182,65 @@ function gameOverScreen() {
 
 function victoryScreen() {
 
-    background(
-        10,
-        8,
-        20
-    );
+    background(10, 8, 20);
 
 
     drawTreasureParticles();
 
 
-    // Large glow
+    fxGodRays(400, 225, [255, 215, 100], 12, 520);
 
-    noStroke();
-
-
-    let victoryGlow =
-        160 +
-        sin(
-            frameCount * 0.05
-        ) * 30;
+    fxLight(400, 225, 320 + sin(frameCount * 0.05) * 30, [255, 200, 70], 0.35);
 
 
-    fill(
-        255,
-        210,
-        70,
-        20
-    );
-
-
-    circle(
-        400,
-        235,
-        victoryGlow + 150
-    );
-
-
-    fill(
-        255,
-        210,
-        70,
-        25
-    );
-
-
-    circle(
-        400,
-        235,
-        victoryGlow
-    );
-
-
-    // Relic
-
-    drawSpireRelic(
-        400,
-        205
-    );
+    drawSpireRelic(400, 205);
 
 
     textAlign(CENTER);
 
+    textStyle(BOLD);
 
-    fill(
-        255,
-        210,
-        70
-    );
+    fill(255, 210, 70);
 
-    textSize(13);
+    textSize(14);
+
+    text("THE HOLLOW SPIRE", 400, 310);
 
 
-    text(
-        "THE HOLLOW SPIRE",
-        400,
-        310
-    );
-
+    textFont(TITLE_FONT);
 
     fill(255);
 
-    textStyle(BOLD);
+    textSize(46);
 
-    textSize(50);
+    fxGlowText("ASCENSION COMPLETE", 400, 368, [255, 190, 50], 22);
 
 
-    text(
-        "ASCENSION COMPLETE",
-        400,
-        365
-    );
-
+    textFont(UI_FONT);
 
     textStyle(NORMAL);
 
+    fill(224, 204, 156);
 
-    fill(
-        220,
-        200,
-        150
-    );
+    textSize(19);
 
-    textSize(17);
+    text("You defeated the Abyssal King", 400, 406);
 
-
-    text(
-        "You defeated the Abyssal King",
-        400,
-        405
-    );
+    text("and claimed the Spire Relic.", 400, 432);
 
 
-    text(
-        "and claimed the Spire Relic.",
-        400,
-        430
-    );
+    let g = 0.55 + sin(frameCount * 0.08) * 0.3;
 
-
-    // Restart
-
-    let restartGlow =
-        60 +
-        sin(
-            frameCount * 0.08
-        ) * 30;
-
-
-    fill(
-        255,
-        210,
-        70,
-        restartGlow
-    );
-
-
-    rect(
-        290,
-        475,
-        220,
-        60,
-        8
-    );
-
-
-    fill(
-        20,
-        15,
-        10
-    );
-
-
-    rect(
-        296,
-        481,
-        208,
-        48,
-        6
-    );
+    fxPanel(290, 472, 220, 62, [255, 210, 70], 12, 0.92);
 
 
     fill(255);
 
     textStyle(BOLD);
 
-    textSize(17);
+    textSize(20);
 
-
-    text(
-        "R   PLAY AGAIN",
-        400,
-        512
-    );
-
+    fxGlowText("R   PLAY AGAIN", 400, 510, [255, 200, 60], 8 * g);
 
     textStyle(NORMAL);
 }
@@ -6439,4 +5954,87 @@ function keyPressed() {
 
 
     return false;
+}
+
+
+// ============================================================
+// DRAWTORCHES
+// ============================================================
+
+function drawTorches() {
+
+    let rgb = fxAccent();
+
+    let spots = [
+        [112, 175],
+        [688, 175],
+        [262, 150],
+        [538, 150]
+    ];
+
+
+    noStroke();
+
+    for (let i = 0; i < spots.length; i++) {
+
+        let x = spots[i][0];
+        let y = spots[i][1];
+
+
+        let flicker =
+            0.75 +
+            noise(frameCount * 0.07 + i * 31) * 0.5;
+
+
+        // Light on the wall and the floor below
+
+        fxLight(x, y, 190 * flicker, rgb, 0.3);
+
+        fxLight(x, y + 170, 150 * flicker, rgb, 0.12);
+
+
+        // Bracket
+
+        fill(60, 70, 100);
+
+        rect(x - 7, y + 10, 14, 5, 2);
+
+        rect(x - 3, y + 14, 6, 18, 2);
+
+
+        // Cup
+
+        fill(34, 40, 66);
+
+        arc(x, y + 10, 18, 14, 0, PI);
+
+
+        // Flame
+
+        let h = 24 * flicker;
+
+        fill(rgb[0], rgb[1], rgb[2], 70);
+
+        ellipse(x, y - 2, 26, h + 12);
+
+        fill(rgb[0], rgb[1], rgb[2], 180);
+
+        ellipse(x, y, 14, h);
+
+        fill(255, 255, 255, 230);
+
+        ellipse(x, y + 3, 6, h * 0.5);
+    }
+}
+
+
+// ============================================================
+// DRAWEXPLORATIONLIGHTING
+// ============================================================
+
+function drawExplorationLighting() {
+
+    // The dark creeps in around the player's own light
+
+    fxDarkness(playerX, playerY, 130, 470, 0.5);
 }

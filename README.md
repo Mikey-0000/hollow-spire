@@ -13,3 +13,8 @@ In battle you can attack, use Fire or Ice to find enemy weaknesses, drink an Eli
 
 ## Run locally
 Open `index.html` in a browser. p5.js loads from a CDN, so you need an internet connection.
+
+## Project layout
+- `index.html` / `styles.css`: the page around the game
+- `sketch.js`: game logic and screens
+- `fx.js`: visual effects layer (glow, lighting, panels, bloom, screen shake)
