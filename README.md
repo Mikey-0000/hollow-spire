@@ -2,7 +2,7 @@
 
 An original turn-based RPG made with p5.js. Climb three floors of the spire, explore, and fight the Hollow Wisp, the Spire Reaper and the Abyssal King to claim the Spire Relic.
 
-**Play:** https://mikey101101.github.io/hollow-spire/
+**Play:** https://mikey-0000.github.io/hollow-spire/
 
 ## Controls
 - WASD or arrow keys: move
