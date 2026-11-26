@@ -387,6 +387,16 @@ body {
 .game-top-bar { margin-bottom: 14px; }
 .game-bottom-bar { margin-top: 14px; }
 
+/* Bottom bar: left / centre / right, with the middle item truly centred */
+.game-bottom-bar {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+}
+
+.game-bottom-bar span:first-child { justify-self: start; }
+.game-bottom-bar span:nth-child(2) { justify-self: center; padding-left: 3px; }
+.game-bottom-bar span:last-child  { justify-self: end; }
+
 .game-label { color: var(--ice); }
 .game-label b { color: var(--dim); margin: 0 4px; }
 
@@ -828,6 +838,7 @@ footer span {
 
     .tagline { letter-spacing: 4px; font-size: 13px; }
 
+    .game-bottom-bar { grid-template-columns: 1fr 1fr; }
     .game-bottom-bar span:nth-child(2) { display: none; }
 }
 
