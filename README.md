@@ -18,3 +18,8 @@ Open `index.html` in a browser. p5.js loads from a CDN, so you need an internet 
 - `index.html` / `styles.css`: the page around the game
 - `sketch.js`: game logic and screens
 - `fx.js`: visual effects layer (glow, lighting, panels, bloom, screen shake)
+
+## Deploy to Cloudflare
+The repo includes a `wrangler.jsonc` that publishes the site as static assets.
+- From your computer: `npx wrangler deploy`
+- Or in the Cloudflare dashboard: Workers & Pages > Create > connect this repo (leave the build command empty).
